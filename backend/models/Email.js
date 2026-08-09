@@ -25,6 +25,12 @@ const emailSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    // Who sent this campaign — used to scope the history page to the logged-in user
+    sentBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true } // adds createdAt / updatedAt automatically
 );

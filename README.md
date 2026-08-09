@@ -3,11 +3,11 @@
 A full-stack app for sending bulk emails, built with **React**, **Node.js/Express**, **MongoDB**, and **Nodemailer**.
 
 ## Features
-- Admin login (JWT-based, credentials from `.env`)
+- Multi-user accounts (register/login, JWT-based, passwords hashed with bcrypt, stored in MongoDB)
 - Send the same subject/body to multiple recipients at once
 - Input validation (empty fields, invalid email formats)
 - Success / partial failure / failure status per send
-- Email history page showing all past sends, pulled from MongoDB
+- Email history page — each user only ever sees and can delete their own past sends
 
 ## Project Structure
 ```
@@ -29,7 +29,8 @@ Edit `backend/.env`:
 - `EMAIL_USER` / `EMAIL_PASS` — a Gmail address + an **App Password**
   (Google Account → Security → 2-Step Verification → App Passwords)
 - `JWT_SECRET` — any long random string
-- `ADMIN_EMAIL` / `ADMIN_PASSWORD` — credentials you'll use to log in
+
+User accounts live in MongoDB — no admin credentials to set up in `.env`, just register from the app.
 
 Start the server:
 ```bash
@@ -48,16 +49,17 @@ Runs on `http://localhost:3000` and talks to the backend via `REACT_APP_API_URL`
 
 ## 3. Using the App
 1. Go to `http://localhost:3000`, you'll be redirected to `/login`.
-2. Log in with the `ADMIN_EMAIL` / `ADMIN_PASSWORD` from your backend `.env`.
-3. On the **Send Mail** page, fill in Subject, Body, and Recipients (comma, space, or newline separated).
-4. Check the **History** page to see all past sends and their status.
+2. First time? Click **Register** and create an account (email + password, 6+ characters).
+3. On the **Send Mail** page, fill in Subject, Body, and Recipients (type/paste emails, they become chips).
+4. Check the **History** page — it only shows campaigns *you* sent, with a Delete button on each row.
+5. Multiple people can register their own accounts; each person's history and delete access is scoped to their own login only.
 
 ## Production Deployment
 
 ### Option A — Docker Compose (recommended, one command)
 ```bash
 cd backend
-cp .env.example .env   # fill in real MONGO_URI (or leave as-is to use the bundled mongo service), EMAIL_*, JWT_SECRET, ADMIN_*
+cp .env.example .env   # fill in real MONGO_URI (or leave as-is to use the bundled mongo service), EMAIL_*, JWT_SECRET
 cd ..
 docker compose up --build -d
 ```
@@ -85,7 +87,6 @@ Serve `frontend/build` with any static host (nginx, Netlify, Vercel, S3+CloudFro
 - [ ] `FRONTEND_ORIGIN` matches your deployed frontend's exact origin
 - [ ] MongoDB is a real persistent instance (Atlas or a volume-backed container), not the default local dev database
 - [ ] Traffic reaches the backend over HTTPS (via reverse proxy / load balancer — the app itself doesn't terminate TLS)
-- [ ] `ADMIN_EMAIL` / `ADMIN_PASSWORD` are changed from the example defaults
 - [ ] Gmail App Password (or a transactional email provider like SES/SendGrid for higher volume) is configured in `EMAIL_USER` / `EMAIL_PASS`
 
 ### What's already hardened for production
@@ -100,9 +101,12 @@ Serve `frontend/build` with any static host (nginx, Netlify, Vercel, S3+CloudFro
 - Graceful shutdown on `SIGTERM`/`SIGINT` so the HTTP server drains before exiting
 
 ## How It Works (for learning)
-- `backend/routes/authRoutes.js` — checks email/password against `.env`, issues a JWT.
-- `backend/middleware/auth.js` — verifies the JWT on protected routes.
-- `backend/routes/mailRoutes.js` — loops over recipients, sends each email via Nodemailer, saves a record to MongoDB (`backend/models/Email.js`) with the final status.
+- `backend/models/User.js` — one document per account, password stored as a bcrypt hash (never plaintext).
+- `backend/routes/authRoutes.js` — `/register` creates a user and hashes their password; `/login` compares the hash and issues a JWT containing the user's id.
+- `backend/middleware/auth.js` — verifies the JWT on protected routes and exposes `req.admin.id` / `req.admin.email`.
+- `backend/models/Email.js` — each campaign record has a `sentBy` field referencing the `User` who sent it.
+- `backend/routes/mailRoutes.js` — `/send` tags new records with `sentBy: req.admin.id`; `/history` only queries records where `sentBy` matches the logged-in user; `DELETE /:id` only deletes a record if it belongs to the logged-in user (returns 404 otherwise, even if the id exists).
 - `frontend/src/api/axios.js` — a shared axios instance that automatically attaches the saved JWT to every request.
+- `frontend/src/pages/Register.js` / `Login.js` — create or authenticate an account, store the returned JWT in `localStorage`.
 - `frontend/src/pages/SendMail.js` — validates input client-side before calling the API.
-- `frontend/src/pages/History.js` — fetches and displays the `Email` collection from MongoDB.
+- `frontend/src/pages/History.js` — fetches only the current user's campaigns and lets them delete each one.

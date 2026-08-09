@@ -1,13 +1,6 @@
 // Fails fast on boot if required config is missing, instead of surfacing
 // confusing errors later (e.g. a 500 the first time someone tries to log in).
-const REQUIRED_VARS = [
-  "MONGO_URI",
-  "JWT_SECRET",
-  "EMAIL_USER",
-  "EMAIL_PASS",
-  "ADMIN_EMAIL",
-  "ADMIN_PASSWORD",
-];
+const REQUIRED_VARS = ["MONGO_URI", "JWT_SECRET", "EMAIL_USER", "EMAIL_PASS"];
 
 function validateEnv() {
   const missing = REQUIRED_VARS.filter((key) => !process.env[key]);

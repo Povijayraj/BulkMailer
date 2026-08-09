@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -11,11 +11,18 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <div className="navbar-brand">📧 Bulk Mail Sender</div>
+      <Link to={isLoggedIn ? "/" : "/login"} className="navbar-brand">
+        <span className="navbar-brand-icon">✉️</span>
+        <span>BulkMailer</span>
+      </Link>
       {isLoggedIn && (
         <div className="navbar-links">
-          <Link to="/">Send Mail</Link>
-          <Link to="/history">History</Link>
+          <NavLink to="/" end className={({ isActive }) => (isActive ? "nav-active" : "")}>
+            Send Mail
+          </NavLink>
+          <NavLink to="/history" className={({ isActive }) => (isActive ? "nav-active" : "")}>
+            History
+          </NavLink>
           <button onClick={handleLogout} className="link-button">
             Logout
           </button>

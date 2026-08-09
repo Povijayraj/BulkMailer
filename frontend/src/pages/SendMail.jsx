@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../api/axios";
 import RecipientChipInput from "../components/RecipientChipInput";
+import ExcelRecipientUpload from "../components/ExcelRecipientUpload";
 import SuccessCheck from "../components/SuccessCheck";
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -50,40 +51,76 @@ function SendMail() {
   };
 
   return (
-    <div className="page-container">
-      <form className="card" onSubmit={handleSubmit}>
-        {showCheck && <SuccessCheck />}
+    <div className="page-container compose-container">
+      <div className="compose-grid">
+        <form className="card compose-form" onSubmit={handleSubmit}>
+          {showCheck && <SuccessCheck />}
 
-        <h2>Send Bulk Mail</h2>
+          <h2>Compose Campaign</h2>
 
-        {status && <div className={`message ${status.type}`}>{status.text}</div>}
+          {status && <div className={`message ${status.type}`}>{status.text}</div>}
 
-        <label>Subject</label>
-        <input
-          type="text"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          placeholder="Monthly Newsletter"
-        />
+          <label>Subject</label>
+          <input
+            type="text"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Monthly Newsletter"
+          />
 
-        <label>Email Body</label>
-        <textarea
-          rows={8}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder="Write your message here..."
-        />
+          <label>Email Body</label>
+          <textarea
+            rows={8}
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="Write your message here..."
+          />
 
-        <label>Recipient Emails</label>
-        <RecipientChipInput recipients={recipients} onChange={setRecipients} />
-        <small>
-          {recipients.length} recipient{recipients.length === 1 ? "" : "s"} added
-        </small>
+          <label>Recipient Emails</label>
+          <ExcelRecipientUpload recipients={recipients} onChange={setRecipients} />
+          <RecipientChipInput recipients={recipients} onChange={setRecipients} />
+          <small>
+            {recipients.length} recipient{recipients.length === 1 ? "" : "s"} added
+          </small>
 
-        <button type="submit" disabled={sending}>
-          {sending ? "Sending..." : "Send Emails"}
-        </button>
-      </form>
+          <button type="submit" disabled={sending}>
+            {sending ? "Sending..." : `Send to ${recipients.length || ""} Recipient${recipients.length === 1 ? "" : "s"}`}
+          </button>
+        </form>
+
+        <div className="preview-pane">
+          <span className="preview-label">Live Preview</span>
+          <div className="preview-envelope">
+            <div className="preview-envelope-header">
+              <div className="preview-avatar">✉️</div>
+              <div>
+                <div className="preview-to">
+                  To: {recipients.length > 0 ? `${recipients.length} recipient${recipients.length === 1 ? "" : "s"}` : "no one yet"}
+                </div>
+                <div className="preview-from">From: you</div>
+              </div>
+            </div>
+            <div className="preview-subject">{subject || "Your subject will appear here"}</div>
+            <div className="preview-body">
+              {body || "Start typing your message and watch it show up here in real time."}
+            </div>
+            {recipients.length > 0 && (
+              <div className="preview-chip-strip">
+                {recipients.slice(0, 6).map((r) => (
+                  <span key={r} className="preview-mini-chip">
+                    {r}
+                  </span>
+                ))}
+                {recipients.length > 6 && (
+                  <span className="preview-mini-chip preview-mini-chip-more">
+                    +{recipients.length - 6} more
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

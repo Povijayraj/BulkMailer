@@ -3,9 +3,10 @@ import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axios";
 import AuthLayout from "../components/AuthLayout";
 
-function Login() {
+function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -13,14 +14,19 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const res = await api.post("/auth/login", { email, password });
+      const res = await api.post("/auth/register", { email, password });
       localStorage.setItem("token", res.data.token);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed. Please try again.");
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -28,12 +34,12 @@ function Login() {
 
   return (
     <AuthLayout
-      eyebrow="Welcome back"
-      title="Good to see you again"
-      tagline="Log in to send your next campaign and pick up right where your history left off."
+      eyebrow="Get started"
+      title="Create your account"
+      tagline="Your own private inbox history — nobody else can see or delete what you send."
     >
       <form onSubmit={handleSubmit}>
-        <h2>Log In</h2>
+        <h2>Create Account</h2>
 
         {error && <div className="message error">{error}</div>}
 
@@ -52,19 +58,29 @@ function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          minLength={6}
+          placeholder="At least 6 characters"
+        />
+
+        <label>Confirm Password</label>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
           placeholder="••••••••"
         />
 
         <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Creating account..." : "Register"}
         </button>
 
         <p className="auth-switch">
-          Don't have an account? <Link to="/register">Register</Link>
+          Already have an account? <Link to="/login">Log in</Link>
         </p>
       </form>
     </AuthLayout>
   );
 }
 
-export default Login;
+export default Register;

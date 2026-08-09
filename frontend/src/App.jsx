@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MailboxBackground from "./components/MailboxBackground";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import SendMail from "./pages/SendMail";
 import History from "./pages/History";
 
@@ -13,6 +14,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/"
           element={
