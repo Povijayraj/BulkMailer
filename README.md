@@ -56,17 +56,6 @@ Runs on `http://localhost:3000` and talks to the backend via `REACT_APP_API_URL`
 
 ## Production Deployment
 
-### Option A — Docker Compose (recommended, one command)
-```bash
-cd backend
-cp .env.example .env   # fill in real MONGO_URI (or leave as-is to use the bundled mongo service), EMAIL_*, JWT_SECRET
-cd ..
-docker compose up --build -d
-```
-This builds and runs three containers: `mongo`, `backend` (port 5000), and `frontend` served by nginx (port 80).
-Set `FRONTEND_ORIGIN` in `backend/.env` to your real frontend URL, and `REACT_APP_API_URL` build arg in `docker-compose.yml` to your real backend URL before deploying to a real domain.
-
-### Option B — Manual deploy
 Backend:
 ```bash
 cd backend
