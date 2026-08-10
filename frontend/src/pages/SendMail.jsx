@@ -6,7 +6,19 @@ import SuccessCheck from "../components/SuccessCheck";
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+const getSenderEmail = () => {
+  const token = localStorage.getItem("token");
+  if (!token) return "you";
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.email || "you";
+  } catch {
+    return "you";
+  }
+};
+
 function SendMail() {
+  const senderEmail = getSenderEmail();
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [recipients, setRecipients] = useState([]);
@@ -60,6 +72,9 @@ function SendMail() {
 
           {status && <div className={`message ${status.type}`}>{status.text}</div>}
 
+          <label>From</label>
+          <input type="text" value={senderEmail} disabled />
+
           <label>Subject</label>
           <input
             type="text"
@@ -97,7 +112,7 @@ function SendMail() {
                 <div className="preview-to">
                   To: {recipients.length > 0 ? `${recipients.length} recipient${recipients.length === 1 ? "" : "s"}` : "no one yet"}
                 </div>
-                <div className="preview-from">From: you</div>
+                <div className="preview-from">From: {senderEmail}</div>
               </div>
             </div>
             <div className="preview-subject">{subject || "Your subject will appear here"}</div>

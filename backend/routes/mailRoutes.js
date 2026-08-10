@@ -49,7 +49,8 @@ router.post("/send", requireAuth, async (req, res) => {
   for (const recipient of recipients) {
     try {
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: `"${req.admin.email}" <${process.env.EMAIL_USER}>`,
+        replyTo: req.admin.email,
         to: recipient,
         subject,
         text: body,
